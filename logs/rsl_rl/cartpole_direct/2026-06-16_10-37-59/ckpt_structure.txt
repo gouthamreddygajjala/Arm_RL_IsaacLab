@@ -1,0 +1,35 @@
+Top-level type: <class 'dict'>
+
+Top-level keys:
+  actor_state_dict: <class 'collections.OrderedDict'>
+  critic_state_dict: <class 'collections.OrderedDict'>
+  optimizer_state_dict: <class 'dict'>
+  iter: <class 'int'>
+  infos: <class 'NoneType'>
+
+--- Contents of 'actor_state_dict' ---
+  distribution.std_param: shape=(7,) dtype=torch.float32
+  mlp.0.weight: shape=(32, 28) dtype=torch.float32
+  mlp.0.bias: shape=(32,) dtype=torch.float32
+  mlp.2.weight: shape=(32, 32) dtype=torch.float32
+  mlp.2.bias: shape=(32,) dtype=torch.float32
+  mlp.4.weight: shape=(7, 32) dtype=torch.float32
+  mlp.4.bias: shape=(7,) dtype=torch.float32
+
+--- Contents of 'critic_state_dict' ---
+  mlp.0.weight: shape=(32, 28) dtype=torch.float32
+  mlp.0.bias: shape=(32,) dtype=torch.float32
+  mlp.2.weight: shape=(32, 32) dtype=torch.float32
+  mlp.2.bias: shape=(32,) dtype=torch.float32
+  mlp.4.weight: shape=(1, 32) dtype=torch.float32
+  mlp.4.bias: shape=(1,) dtype=torch.float32
+
+--- Contents of 'optimizer_state_dict' ---
+  state: <class 'dict'> -> large object
+  param_groups: <class 'list'> -> large object
+
+--- Contents of 'iter' ---
+  value: 0
+
+--- Contents of 'infos' ---
+  value: None
