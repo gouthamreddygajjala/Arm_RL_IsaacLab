@@ -2,7 +2,7 @@
 **/cmake-build*/
 **/build*/
 **/*.so
-**/*.log*
+#**/*.log*
 
 # Omniverse
 **/*.dmp
@@ -35,8 +35,8 @@ docker/.container.cfg
 !.vscode
 
 # Outputs
-**/output/*
-**/outputs/*
+#**/output/*
+#**/outputs/*
 **/videos/*
 **/wandb/*
 **/.neptune/*
@@ -55,7 +55,7 @@ _build
 
 # RL-Games
 **/runs/*
-**/logs/*
+#**/logs/*
 **/recordings/*
 
 # Pre-Trained Checkpoints
