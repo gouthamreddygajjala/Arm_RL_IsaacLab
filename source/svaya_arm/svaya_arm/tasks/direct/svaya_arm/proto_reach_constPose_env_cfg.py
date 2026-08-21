@@ -81,18 +81,22 @@ class ReachConstTargetEnvCfg(DirectRLEnvCfg):
     # reward scales
     rew_scale_alive = 0.5
     rew_scale_pos_error = -5.0  # penalise EE-to-target distance
-    rew_scale_rot_error = -5.0  #-1.0 # penalise orientation error
-    rew_scale_reach_bonus = 15.0  #10.0 # sparse bonus for being close enough
+    rew_scale_rot_error = -10.0  #-1.0 # penalise orientation error
+    rew_scale_reach_bonus = 500.0  #10.0 # sparse bonus for being close enough
     rew_scale_joint_limit = -2.0  # penalty for approaching/hitting joint limits
     rew_scale_termination = -75.0  # penalty for termination (collision, joint limit, etc.)
     rew_scale_stability = 30.0  # bonus for keeping EE stable (low velocity) when close to target
-    rew_scale_action_rate = -0.5
+    rew_scale_action_rate = -3.0
+    rew_scale_joint_vel = -1.0 
     stability_vel_scale = 3.0  #3000
-    rew_scale_centering = -0.1 
+    rew_scale_centering = -0.5  # penalty for being far from the center of the workspace (to avoid drifting too far away)
+
+    rew_scale_j5_vel_target = -50.0 
+    rew_scale_action_rate_at_target = -70.0
 
     # thresholds
     pos_success_threshold = 0.01 #0.05  # [m] EE within 5 cm → success
-    rot_success_threshold = 0.1  # [rad] EE orientation within 0.1 rad → success
+    rot_success_threshold = 0.08  # [rad] EE orientation within 0.1 rad → success
     joint_limit_margin = 0.05
     
     
