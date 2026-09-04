@@ -77,6 +77,12 @@ class FactoryEnv(DirectRLEnv):
         self.ep_succeeded = torch.zeros((self.num_envs,), dtype=torch.long, device=self.device)
         self.ep_success_times = torch.zeros((self.num_envs,), dtype=torch.long, device=self.device)
 
+        # print("body_names:", self._robot.body_names)
+        # print("num bodies:", len(self._robot.body_names))
+        # jacobians = self._robot.root_physx_view.get_jacobians()
+        # print("jacobian tensor shape:", jacobians.shape)  # expect (num_envs, len(body_names)-1, 6, num_dof)
+        # print("left_finger_body_idx:", self.left_finger_body_idx)
+
     def _setup_scene(self):
         """Initialize simulation scene."""
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg(), translation=(0.0, 0.0, -1.05))
@@ -132,6 +138,9 @@ class FactoryEnv(DirectRLEnv):
         self.arm_mass_matrix = self._robot.root_physx_view.get_generalized_mass_matrices()[:, 0:7, 0:7]
         self.joint_pos = self._robot.data.joint_pos.clone()
         self.joint_vel = self._robot.data.joint_vel.clone()
+        
+        # print("fingertip jacobian row:\n", self.fingertip_midpoint_jacobian[0])
+
 
         # Finite-differencing results in more reliable velocity estimates.
         self.ee_linvel_fd = (self.fingertip_midpoint_pos - self.prev_fingertip_pos) / dt
@@ -525,6 +534,12 @@ class FactoryEnv(DirectRLEnv):
             delta_hand_pose = torch.cat((pos_error, axis_angle_error), dim=-1)
 
             # print(torch.linalg.matrix_rank(self.fingertip_midpoint_jacobian[0]))
+            
+            # --- debug ---
+            # print("jacobian for env 0:\n", self.fingertip_midpoint_jacobian[env_ids][0])
+            # print("rank:", torch.linalg.matrix_rank(self.fingertip_midpoint_jacobian[env_ids][0]))
+            # print("joint_pos[env_ids][0]:", self.joint_pos[env_ids][0, 0:7])
+            # -------------
 
             # Solve DLS problem.
             delta_dof_pos = factory_control.get_delta_dof_pos(
@@ -547,37 +562,37 @@ class FactoryEnv(DirectRLEnv):
 
         return pos_error, axis_angle_error
 
-    def get_handheld_asset_relative_pose(self):
+    def get_handheld_asset_relative_pose(self): 
         """Get default relative pose between help asset and fingertip."""
-        if self.cfg_task.name == "peg_insert":
-            held_asset_relative_pos = torch.zeros((self.num_envs, 3), device=self.device)
-            held_asset_relative_pos[:, 2] = self.cfg_task.held_asset_cfg.height
-            held_asset_relative_pos[:, 2] -= self.cfg_task.robot_cfg.franka_fingerpad_length
-        elif self.cfg_task.name == "gear_mesh":
+        # if self.cfg_task.name == "peg_insert":
+        #     held_asset_relative_pos = torch.zeros((self.num_envs, 3), device=self.device)
+        #     held_asset_relative_pos[:, 2] = self.cfg_task.held_asset_cfg.height
+        #     held_asset_relative_pos[:, 2] -= self.cfg_task.robot_cfg.franka_fingerpad_length
+        if self.cfg_task.name == "gear_mesh":
             held_asset_relative_pos = torch.zeros((self.num_envs, 3), device=self.device)
             gear_base_offset = self.cfg_task.fixed_asset_cfg.medium_gear_base_offset
             held_asset_relative_pos[:, 0] += gear_base_offset[0]
             held_asset_relative_pos[:, 2] += gear_base_offset[2]
-            held_asset_relative_pos[:, 2] += self.cfg_task.held_asset_cfg.height / 2.0 * 1.1
-        elif self.cfg_task.name == "nut_thread":
-            held_asset_relative_pos = factory_utils.get_held_base_pos_local(
-                self.cfg_task.name, self.cfg_task.fixed_asset_cfg, self.num_envs, self.device
-            )
+            held_asset_relative_pos[:, 2] += self.cfg_task.held_asset_cfg.height / 2.0 * 1.1 #+ 0.01 #correction
+        # elif self.cfg_task.name == "nut_thread":
+        #     held_asset_relative_pos = factory_utils.get_held_base_pos_local(
+        #         self.cfg_task.name, self.cfg_task.fixed_asset_cfg, self.num_envs, self.device
+        #     )
         else:
             raise NotImplementedError("Task not implemented")
 
         held_asset_relative_quat = (
             torch.tensor([1.0, 0.0, 0.0, 0.0], device=self.device).unsqueeze(0).repeat(self.num_envs, 1)
         )
-        if self.cfg_task.name == "nut_thread":
-            # Rotate along z-axis of frame for default position.
-            initial_rot_deg = self.cfg_task.held_asset_rot_init
-            rot_yaw_euler = torch.tensor([0.0, 0.0, initial_rot_deg * np.pi / 180.0], device=self.device).repeat(
-                self.num_envs, 1
-            )
-            held_asset_relative_quat = torch_utils.quat_from_euler_xyz(
-                roll=rot_yaw_euler[:, 0], pitch=rot_yaw_euler[:, 1], yaw=rot_yaw_euler[:, 2]
-            )
+        # if self.cfg_task.name == "nut_thread":
+        #     # Rotate along z-axis of frame for default position.
+        #     initial_rot_deg = self.cfg_task.held_asset_rot_init
+        #     rot_yaw_euler = torch.tensor([0.0, 0.0, initial_rot_deg * np.pi / 180.0], device=self.device).repeat(
+        #         self.num_envs, 1
+        #     )
+        #     held_asset_relative_quat = torch_utils.quat_from_euler_xyz(
+        #         roll=rot_yaw_euler[:, 0], pitch=rot_yaw_euler[:, 1], yaw=rot_yaw_euler[:, 2]
+        #     )
 
         return held_asset_relative_pos, held_asset_relative_quat
 
@@ -703,19 +718,37 @@ class FactoryEnv(DirectRLEnv):
                 ctrl_target_fingertip_midpoint_quat=hand_down_quat,
                 env_ids=bad_envs,
             )
-            pos_error = torch.linalg.norm(pos_error, dim=1) > 1e-3
-            angle_error = torch.norm(aa_error, dim=1) > 1e-3
-            any_error = torch.logical_or(pos_error, angle_error)
+            pos_error_norm = torch.linalg.norm(pos_error, dim=1)
+            angle_error_norm = torch.norm(aa_error, dim=1)
+            pos_error_mask = pos_error_norm > 1e-3
+            angle_error_mask = angle_error_norm > 1e-3
+            any_error = torch.logical_or(pos_error_mask, angle_error_mask)
             bad_envs = bad_envs[any_error.nonzero(as_tuple=False).squeeze(-1)]
 
             # Check IK succeeded for all envs, otherwise try again for those envs
             if bad_envs.shape[0] == 0:
                 break
 
+            # self._set_franka_to_default_pose(
+            #     joints=[0.00871, -0.10368, -0.00794, -1.49139, -0.00083, 1.38774, 0.0], env_ids=bad_envs
+            # )
+            
+            print(f"attempt {ik_attempt}, bad_envs remaining: {bad_envs.shape[0]}")
+            print("mean pos_error (bad envs):", pos_error_norm[any_error].mean().item())
+            print("mean angle_error (bad envs):", angle_error_norm[any_error].mean().item())
+            print("joint_pos before reseed (env0):", self.joint_pos[bad_envs[0], 0:7])
+            limits = self._robot.data.joint_pos_limits[0, 0:7]
+            near_limit = torch.isclose(self.joint_pos[bad_envs[0], 0:7], limits[:, 0], atol=0.05) | \
+                        torch.isclose(self.joint_pos[bad_envs[0], 0:7], limits[:, 1], atol=0.05)
+            print("near limit?:", near_limit)
+            
             self._set_franka_to_default_pose(
-                joints=[0.00871, -0.10368, -0.00794, -1.49139, -0.00083, 1.38774, 0.0], env_ids=bad_envs
+                joints=[0.0, 0.3, 0.0, 0.5, 0.0, 0.5, 0.0], env_ids=bad_envs
             )
-
+            print(f"--- ik_attempt: {ik_attempt}, bad_envs remaining: {bad_envs.shape[0]} ---")
+            limits = self._robot.data.joint_pos_limits[0, 0:7]  # or similar attribute name, check your IsaacLab version
+            # print(limits)
+            print(self.joint_pos[bad_envs[0], 0:7])
             ik_attempt += 1
 
         self.step_sim_no_action()

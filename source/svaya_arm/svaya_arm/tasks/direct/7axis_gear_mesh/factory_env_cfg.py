@@ -121,7 +121,7 @@ class FactoryEnvCfg(DirectRLEnvCfg):
             friction_correlation_distance=0.00625,
             gpu_max_rigid_contact_count=2**23,
             gpu_max_rigid_patch_count=2**23,
-            gpu_collision_stack_size=2**28,
+            gpu_collision_stack_size=2**29, #
             gpu_max_num_partitions=1,  # Important for stable simulation.
         ),
         physics_material=RigidBodyMaterialCfg(
@@ -135,7 +135,8 @@ class FactoryEnvCfg(DirectRLEnvCfg):
     robot = ArticulationCfg(
         prim_path="/World/envs/env_.*/Robot",
         spawn=sim_utils.UsdFileCfg(
-            usd_path="/home/darms/Documents/gautam_ws/isaac/svaya_arm/data/seven_axis_Gripper/seven_axis_Gripper.usd",
+            usd_path="/home/darms/Documents/gautam_ws/isaac/svaya_arm/data/seven_axis_with_Gripper/seven_axis_Gripper.usd",
+            # usd_path=f"{ASSET_DIR}/franka_mimic.usd",
             activate_contact_sensors=True,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 disable_gravity=True,
@@ -158,24 +159,24 @@ class FactoryEnvCfg(DirectRLEnvCfg):
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             joint_pos={
-                # "seven_axis_joint1": 0.00871,
-                # "seven_axis_joint2": -0.10368,
-                # "seven_axis_joint3": -0.00794,
-                # "seven_axis_joint4": -1.49139,
-                # "seven_axis_joint5": -0.00083,
-                # "seven_axis_joint6": 1.38774,
-                # "seven_axis_joint7": 0.0,
-                # "panda_finger_joint1": 0.04,
-                # "panda_finger_joint2": 0.04,
                 "seven_axis_joint1": 0.0,
-                "seven_axis_joint2": -0.6,
-                "seven_axis_joint3": 0.8,
-                "seven_axis_joint4": 1.2,
-                "seven_axis_joint5": 0.6,
-                "seven_axis_joint6": 1.2,
-                "seven_axis_joint7": 0.3,
-                "panda_finger_joint1": 0.0,
+                "seven_axis_joint2": 0.3,
+                "seven_axis_joint3": 0.0,
+                "seven_axis_joint4": 0.5,
+                "seven_axis_joint5": 0.0,
+                "seven_axis_joint6": 0.5,
+                "seven_axis_joint7": 0.0,
+                # "panda_finger_joint1": 0.0,
                 "panda_finger_joint2": 0.0,
+                
+                # "panda_joint1": 0.00871,
+                # "panda_joint2": -0.10368,
+                # "panda_joint3": -0.00794,
+                # "panda_joint4": -1.49139,
+                # "panda_joint5": -0.00083,
+                # "panda_joint6": 1.38774,
+                # "panda_joint7": 0.0,
+                # "panda_finger_joint2": 0.04,
             },
             pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
@@ -190,6 +191,25 @@ class FactoryEnvCfg(DirectRLEnvCfg):
                 effort_limit_sim=87,
                 velocity_limit_sim=124.6,
             ),
+            
+            #  "panda_arm1": ImplicitActuatorCfg(
+            #     joint_names_expr=["panda_joint[1-4]"],
+            #     stiffness=0.0,
+            #     damping=0.0,
+            #     friction=0.0,
+            #     armature=0.0,
+            #     effort_limit_sim=87,
+            #     velocity_limit_sim=124.6,
+            # ),
+            # "panda_arm2": ImplicitActuatorCfg(
+            #     joint_names_expr=["panda_joint[5-7]"],
+            #     stiffness=0.0,
+            #     damping=0.0,
+            #     friction=0.0,
+            #     armature=0.0,
+            #     effort_limit_sim=12,
+            #     velocity_limit_sim=149.5,
+            # ),
             "panda_hand": ImplicitActuatorCfg(
                 joint_names_expr=["panda_finger_joint[1-2]"],
                 effort_limit_sim=40.0,

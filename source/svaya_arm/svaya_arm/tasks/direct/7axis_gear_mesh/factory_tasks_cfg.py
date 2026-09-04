@@ -165,8 +165,8 @@ class GearMesh(FactoryTask):
     # Robot
     hand_init_pos: list = [0.0, 0.0, 0.035]  # Relative to fixed asset tip.
     hand_init_pos_noise: list = [0.02, 0.02, 0.01]
-    hand_init_orn: list = [3.1416, 0, 0.0]
-    hand_init_orn_noise: list = [0.0, 0.0, 0.785]
+    hand_init_orn: list = [3.1416, 0, -3.1416]
+    hand_init_orn_noise: list = [0.0, 0.0, 0.0]  #0.785
 
     # Fixed Asset (applies to all tasks)
     fixed_asset_init_pos_noise: list = [0.05, 0.05, 0.05]
@@ -205,7 +205,7 @@ class GearMesh(FactoryTask):
             collision_props=sim_utils.CollisionPropertiesCfg(contact_offset=0.005, rest_offset=0.0),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(0.6, 0.0, 0.05), rot=(1.0, 0.0, 0.0, 0.0), joint_pos={}, joint_vel={}
+            pos=(0.4, 0.0, 0.05), rot=(1.0, 0.0, 0.0, 0.0), joint_pos={}, joint_vel={}
         ),
         actuators={},
     )
