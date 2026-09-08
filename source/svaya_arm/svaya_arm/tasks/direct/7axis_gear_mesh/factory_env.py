@@ -94,6 +94,7 @@ class FactoryEnv(DirectRLEnv):
         )
 
         self._robot = Articulation(self.cfg.robot)
+        # self._robot = Articulation(self.cfg.robot_dualarm)
         self._fixed_asset = Articulation(self.cfg_task.fixed_asset)
         self._held_asset = Articulation(self.cfg_task.held_asset)
         if self.cfg_task.name == "gear_mesh":
@@ -573,7 +574,7 @@ class FactoryEnv(DirectRLEnv):
             gear_base_offset = self.cfg_task.fixed_asset_cfg.medium_gear_base_offset
             held_asset_relative_pos[:, 0] += gear_base_offset[0]
             held_asset_relative_pos[:, 2] += gear_base_offset[2]
-            held_asset_relative_pos[:, 2] += self.cfg_task.held_asset_cfg.height / 2.0 * 1.1 #+ 0.01 #correction
+            held_asset_relative_pos[:, 2] += self.cfg_task.held_asset_cfg.height / 2.0 * 1.1 + 0.01 #correction
         # elif self.cfg_task.name == "nut_thread":
         #     held_asset_relative_pos = factory_utils.get_held_base_pos_local(
         #         self.cfg_task.name, self.cfg_task.fixed_asset_cfg, self.num_envs, self.device

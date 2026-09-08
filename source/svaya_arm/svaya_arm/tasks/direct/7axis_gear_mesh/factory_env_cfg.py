@@ -135,8 +135,9 @@ class FactoryEnvCfg(DirectRLEnvCfg):
     robot = ArticulationCfg(
         prim_path="/World/envs/env_.*/Robot",
         spawn=sim_utils.UsdFileCfg(
-            usd_path="/home/darms/Documents/gautam_ws/isaac/svaya_arm/data/seven_axis_with_Gripper/seven_axis_Gripper.usd",
-            # usd_path=f"{ASSET_DIR}/franka_mimic.usd",
+
+            usd_path="/home/darms/Documents/gautam_ws/isaac/svaya_arm/data/seven_axis_with_Gripper/seven_axis_Gripper.usd", 
+            
             activate_contact_sensors=True,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 disable_gravity=True,
@@ -168,15 +169,6 @@ class FactoryEnvCfg(DirectRLEnvCfg):
                 "seven_axis_joint7": 0.0,
                 # "panda_finger_joint1": 0.0,
                 "panda_finger_joint2": 0.0,
-                
-                # "panda_joint1": 0.00871,
-                # "panda_joint2": -0.10368,
-                # "panda_joint3": -0.00794,
-                # "panda_joint4": -1.49139,
-                # "panda_joint5": -0.00083,
-                # "panda_joint6": 1.38774,
-                # "panda_joint7": 0.0,
-                # "panda_finger_joint2": 0.04,
             },
             pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
@@ -191,25 +183,6 @@ class FactoryEnvCfg(DirectRLEnvCfg):
                 effort_limit_sim=87,
                 velocity_limit_sim=124.6,
             ),
-            
-            #  "panda_arm1": ImplicitActuatorCfg(
-            #     joint_names_expr=["panda_joint[1-4]"],
-            #     stiffness=0.0,
-            #     damping=0.0,
-            #     friction=0.0,
-            #     armature=0.0,
-            #     effort_limit_sim=87,
-            #     velocity_limit_sim=124.6,
-            # ),
-            # "panda_arm2": ImplicitActuatorCfg(
-            #     joint_names_expr=["panda_joint[5-7]"],
-            #     stiffness=0.0,
-            #     damping=0.0,
-            #     friction=0.0,
-            #     armature=0.0,
-            #     effort_limit_sim=12,
-            #     velocity_limit_sim=149.5,
-            # ),
             "panda_hand": ImplicitActuatorCfg(
                 joint_names_expr=["panda_finger_joint[1-2]"],
                 effort_limit_sim=40.0,
@@ -218,6 +191,73 @@ class FactoryEnvCfg(DirectRLEnvCfg):
                 damping=173.0,
                 friction=0.1,
                 armature=0.0,
+            ),
+        },
+    )
+    
+    
+    robot_dualarm = ArticulationCfg(
+        prim_path="/World/envs/env_.*/Robot",
+        spawn=sim_utils.UsdFileCfg(
+            #Dualarm
+            usd_path="/home/darms/Documents/gautam_ws/isaac/svaya_arm/data/darm_fixed_gripper/darm_fixed_gripper.usd",
+
+            activate_contact_sensors=True,
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                disable_gravity=True,
+                max_depenetration_velocity=5.0,
+                linear_damping=0.0,
+                angular_damping=0.0,
+                max_linear_velocity=1000.0,
+                max_angular_velocity=3666.0,
+                enable_gyroscopic_forces=True,
+                solver_position_iteration_count=192,
+                solver_velocity_iteration_count=1,
+                max_contact_impulse=1e32,
+            ),
+            articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+                enabled_self_collisions=False,
+                solver_position_iteration_count=192,
+                solver_velocity_iteration_count=1,
+            ),
+            collision_props=sim_utils.CollisionPropertiesCfg(contact_offset=0.005, rest_offset=0.0),
+        ),
+        init_state=ArticulationCfg.InitialStateCfg(
+            joint_pos={
+                # Left arm: fixed "home" pose — pick whatever safe stowed config you want
+                "left_arm_joint1": 0.0,
+                "left_arm_joint2": 0.0,
+                "left_arm_joint3": 0.0,
+                "left_arm_joint4": 0.0,
+                "left_arm_joint5": 0.0,
+                "left_arm_joint6": 0.0,
+                "left_arm_joint7": 0.0,
+                # Right arm: same role Franka's joints played before (task start pose)
+                "right_arm_joint1": 0.0,
+                "right_arm_joint2": 0.3,
+                "right_arm_joint3": 0.0,
+                "right_arm_joint4": 0.5,
+                "right_arm_joint5": 0.0,
+                "right_arm_joint6": 0.5,
+                "right_arm_joint7": 0.0,
+            },
+            pos=(0.0, -0.3, 0.0),
+            rot=(1.0, 0.0, 0.0, 0.0),
+        ),
+        actuators={
+            "sevenaxis_arm": ImplicitActuatorCfg(               #right arm active
+                joint_names_expr=["right_arm_joint[1-7]"],
+                stiffness=0.0,
+                damping=0.0,
+                friction=0.0,
+                armature=0.0,
+                effort_limit_sim=87,
+                velocity_limit_sim=124.6,
+            ),
+            "left_arm": ImplicitActuatorCfg(                      #left_arm locked
+                joint_names_expr=["left_arm_joint[1-7]"],
+                stiffness=1e5, damping=1e3, friction=0.0, armature=0.0,
+                effort_limit_sim=200, velocity_limit_sim=10.0,
             ),
         },
     )
